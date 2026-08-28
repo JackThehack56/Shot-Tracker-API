@@ -1,0 +1,127 @@
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from pathlib import Path
+from src.python.models import Shot, Hole, Round
+from src.python.schemas import ShotData
+from contextlib import asynccontextmanager
+from sqlalchemy.ext.asyncio import AsyncSession
+from src.python.db import RoundRow, create_db_and_tables, get_async_session
+import json
+from sqlalchemy import select
+
+# TODO Link this up with the website so it's hosted on the same address
+
+# TODO Attach the my local ip to coolapp.ca
+# TODO Attach this program to a db
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await create_db_and_tables()
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+async def patch_to_db(round: Round, session: AsyncSession) -> None:
+    result = await session.execute(select(RoundRow).where(RoundRow.id == round_id))
+    current_round = result.scalars().first()
+    current_round.data = round.to_dict()
+    current_round.is_finished = round.is_finished
+    await session.commit()
+
+
+def parse_data(data: ShotData) -> Shot:
+    return Shot(
+        data.hole,
+        data.stroke, 
+        data.club, 
+        data.category, 
+        data.start, 
+        data.finish
+    )
+
+def get_round_num() -> int:
+    current_folder = Path("/Users/jacksonhyland/Desktop/Stuff/Python/Shot Tracker")
+
+    for filename in current_folder.iterdir():
+        filename = filename.name.split(".")[0] # get the actual filename and remove the extension
+        if "Round" in filename:
+            return int(filename[len(filename)-1])+1
+
+    return 0
+
+
+round: Round = None
+round_id: str = None
+
+@app.post("/receive") 
+async def receive_data(
+    data: ShotData,
+    session: AsyncSession = Depends(get_async_session)
+):
+    global round, round_id
+
+    print(data)
+    shot = parse_data(data)
+
+    if round == None and round_id == None:
+        round = Round(get_round_num(), Hole(1, shot))
+        round_row = RoundRow(
+            is_finished=round.is_finished,
+            data=round.to_dict()
+        )
+
+        session.add(round_row)
+        await session.commit()
+        await session.refresh(round_row)
+        round_id = round_row.id
+
+        print(str(round_id))
+
+    elif len(round.holes) == shot.hole:
+        round.holes[shot.hole-1].add_shot(shot)
+        await patch_to_db(round, session)
+    else:
+        round.add_hole(Hole(shot.hole, shot))
+        await patch_to_db(round, session)
+
+
+    return {
+        "success": True,
+        "message": round.to_string() 
+    }
+
+
+@app.get("/round")
+async def get_current_round(
+    session: AsyncSession = Depends(get_async_session)
+):
+    global round, round_id
+    success = True
+    message = None
+
+    result = await session.execute(select(RoundRow).where(RoundRow.is_finished == False))
+    current_round = result.scalars().first()
+
+    if current_round:
+        round = Round.from_dict(data=current_round.data)
+        round_id = current_round.id
+    else:
+        success = False
+        message = "No un-finished round found in db."
+
+    return {
+        "success": success,
+        "message": round.to_string() if not message else message
+    }
+
+
+
+
