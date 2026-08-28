@@ -14,14 +14,24 @@ class Shot:
     category: str
     start: BallPosition
     finish: BallPosition
+    sg: float
 
-    def __init__(self, hole: int, stroke: int, club: str, category: str, start: BallPosition, finish: BallPosition):
+    def __init__(
+        self, hole: int, 
+        stroke: int, 
+        club: str, 
+        category: str, 
+        start: BallPosition, 
+        finish: BallPosition,
+        sg: float
+    ):
         self.hole = hole
         self.stroke = stroke
         self.club = club
         self.category = category
         self.start = start
         self.finish = finish
+        self.sg = sg
 
     @staticmethod
     def from_dict(data: ShotDict) -> Shot:
@@ -31,7 +41,8 @@ class Shot:
             data["club"],
             data["category"],
             BallPosition(lie=data["start"]["lie"], distance=data["start"]["distance"]),
-            BallPosition(lie=data["finish"]["lie"], distance=data["finish"]["distance"])
+            BallPosition(lie=data["finish"]["lie"], distance=data["finish"]["distance"]),
+            data["sg"]
         )
 
     def to_dict(self):
@@ -48,7 +59,8 @@ class Shot:
             "finish": {
                 "lie": self.finish.lie,
                 "distance": self.finish.distance
-            }
+            },
+            "sg": self.sg
         }
 
         return shot

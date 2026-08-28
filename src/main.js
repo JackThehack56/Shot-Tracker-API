@@ -1,3 +1,4 @@
+import { getSG } from './_lib/data.js';
 
 async function checkForRounds() {
     console.info("Checking for Un-Finished rounds...");
@@ -10,9 +11,7 @@ async function checkForRounds() {
     else console.info("No Un-finished rounds found!");
 }
 
-
 document.addEventListener("DOMContentLoaded", checkForRounds);
-
 
 
 function extractData(formElement) {
@@ -33,12 +32,15 @@ function extractData(formElement) {
     club: formData.get('club'),
     category: formData.get('category'),
     start: Start,
-    finish: Finish
+    finish: Finish,
+    sg: getSG(Start.lie, Start.distance, Finish.lie, Finish.distance)
   }
 }
 
 
 async function sendData(e) {
+    console.info("Hello from sendData!")
+
     e.preventDefault();
     const formElem = e.target;
     const shotData = extractData(formElem);
@@ -63,3 +65,6 @@ async function sendData(e) {
       outputElem.textContent = data.message;
     }
 }
+
+
+document.querySelector("form").onsubmit = sendData;

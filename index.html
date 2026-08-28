@@ -127,7 +127,7 @@
 <body>
     
     <div id="wrapper">
-        <form onsubmit="sendData(event)">
+        <form>
             <h1>Shot Tracker</h1>
 
             <label for="hole">Hole</label>
@@ -166,7 +166,6 @@
                     <option value="s">Sand</option>
                     <option value="rc">Recovery</option>
                     <option value="g">Green</option>
-                    <option value="h">Hole</option>
                 </select> 
                 <input type="number" name="distance1" id="distance1" placeholder="135">
             </div>
@@ -188,7 +187,7 @@
         </form>
     </div>
 
-    <script type="module" src="src/lib/data.js"></script>
-    <script src="src/main.js"></script>
+    <!--<script type="module" src="src/_lib/data.js"></script>-->
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>

@@ -4494,8 +4494,8 @@ const strokesGainedPga = {
     pga: strokesGainedPga
 };
 
-export default function getBenchmark(d, l, s="pga", f=!1) {
-    if (console.info("getBenchmark", d, l, s, f), "p" === (l = l.toLowerCase())) return 0;
+export function getBenchmark(d, l, s="pga", f=!1) {
+    if (console.info("getBenchmark", d, l, s, f), "h" === (l = l.toLowerCase())) return 0;
     if (null == d || null == l)
         return console.error("getBenchmark, parameters error", d, l),
         -1;
@@ -4506,4 +4506,19 @@ export default function getBenchmark(d, l, s="pga", f=!1) {
     d = Math.round(d),
     void 0 !== strokesGained[s][d] && void 0 !== strokesGained[s][d][l] && (c = strokesGained[s][d][l]), 
     c
+}
+
+/**
+ * Gets the SG for a given shot
+ * @param {string} startLie - The lie of the ball before the shot
+ * @param {number} startDist - The distance remaining before the shot
+ * @param {string} finishLie - The finish lie
+ * @param {number} finishDist - The lie of the ball after the shot
+ * @returns {number} The sg value
+ */
+
+export function getSG(startLie, startDist, finishLie, finishDist) {
+    const ESB = getBenchmark(startDist, startLie),
+            ESA = getBenchmark(finishDist, finishLie);
+    return (ESB!=-1&&ESA!=-1) ? ESB-ESA-1 : -1;
 }

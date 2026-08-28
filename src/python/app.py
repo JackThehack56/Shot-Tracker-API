@@ -44,7 +44,8 @@ def parse_data(data: ShotData) -> Shot:
         data.club, 
         data.category, 
         data.start, 
-        data.finish
+        data.finish,
+        data.sg
     )
 
 def get_round_num() -> int:

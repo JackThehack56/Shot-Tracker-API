@@ -14,6 +14,7 @@ class ShotData(BaseModel):
     category: str
     start: BallPosition
     finish: BallPosition
+    sg: float
 
 class BallPositionDict(TypedDict):
     lie: str
@@ -26,6 +27,7 @@ class ShotDict(TypedDict):
     category: str
     start: BallPositionDict
     finish: BallPositionDict
+    sg: float
 
 class HoleDict(TypedDict):
     hole: int
