@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 from src.python.schemas import (
     BallPosition, 
@@ -34,7 +35,7 @@ class Shot:
         self.sg = sg
 
     @staticmethod
-    def from_dict(data: ShotDict) -> Shot:
+    def from_dict(data: ShotDict) -> "Shot":
         return Shot(
             data["hole"],
             data["stroke"],
@@ -88,7 +89,7 @@ class Hole:
         return Hole
 
     @staticmethod
-    def from_dict(data: HoleDict) -> Hole:
+    def from_dict(data: HoleDict) -> "Hole":
         shots = [Shot.from_dict(x) for x in data["shots"]]
         return Hole(data["hole"], *shots)
 
@@ -124,7 +125,7 @@ class Round:
         return Round
 
     @staticmethod
-    def from_dict(data: RoundDict) -> Round:
+    def from_dict(data: RoundDict) -> "Round":
         holes = [Hole.from_dict(x) for x in data["holes"]]
         return Round(data["round_id"], *holes)
 
