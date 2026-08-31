@@ -1,6 +1,6 @@
 from __future__ import annotations
 import json
-from src.python.schemas import (
+from src.schemas import (
     BallPosition, 
     ShotDict, 
     HoleDict, 

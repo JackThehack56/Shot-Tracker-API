@@ -1,18 +1,12 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
-from src.python.models import Shot, Hole, Round
-from src.python.schemas import ShotData
+from src.models import Shot, Hole, Round
+from src.schemas import ShotData
 from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.python.db import RoundRow, create_db_and_tables, get_async_session
-import json
+from src.db import RoundRow, create_db_and_tables, get_async_session
 from sqlalchemy import select
-
-# TODO Link this up with the website so it's hosted on the same address
-
-# TODO Attach the my local ip to coolapp.ca
-# TODO Attach this program to a db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
