@@ -1,13 +1,15 @@
 from collections.abc import AsyncGenerator
 import uuid 
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 import datetime
 
-DATABASE_URL = "sqlite+aiosqlite:///./data.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 class Base(DeclarativeBase):
     pass
