@@ -7,6 +7,7 @@ class BallPosition(BaseModel):
 
 
 class ShotData(BaseModel):
+    course: str = None
     hole: int
     stroke: int
     club: str
@@ -33,5 +34,9 @@ class HoleDict(TypedDict):
     shots: list[ShotDict]
 
 class RoundDict(TypedDict):
-    round_id: int
+    course: str
     holes: list[HoleDict]
+
+class RoundResponse(BaseModel):
+    success: bool
+    message: str

@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from src.models import Shot, Hole, Round
-from src.schemas import ShotData
+from src.schemas import ShotData, RoundResponse
 from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.db import RoundRow, create_db_and_tables, get_async_session
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 async def patch_to_db(round: Round, session: AsyncSession) -> None:
+    if not round and not session: return
     result = await session.execute(select(RoundRow).where(RoundRow.id == round_id))
     current_round = result.scalars().first()
     current_round.data = round.to_dict()
@@ -42,16 +43,6 @@ def parse_data(data: ShotData) -> Shot:
         data.sg
     )
 
-def get_round_num() -> int:
-    current_folder = Path("/Users/jacksonhyland/Desktop/Stuff/Python/Shot Tracker")
-
-    for filename in current_folder.iterdir():
-        filename = filename.name.split(".")[0] # get the actual filename and remove the extension
-        if "Round" in filename:
-            return int(filename[len(filename)-1])+1
-
-    return 0
-
 
 round: Round = None
 round_id: str = None
@@ -60,14 +51,17 @@ round_id: str = None
 async def receive_data(
     data: ShotData,
     session: AsyncSession = Depends(get_async_session)
-):
+) -> RoundResponse:
     global round, round_id
+
+    if not round and not data.course:
+        raise HTTPException(status_code=400, detail="You must provide a course name!")
 
     print(data)
     shot = parse_data(data)
 
-    if round == None and round_id == None:
-        round = Round(get_round_num(), Hole(1, shot))
+    if not round and not round_id:
+        round = Round(data.course, Hole(1, shot))
         round_row = RoundRow(
             is_finished=round.is_finished,
             data=round.to_dict()
@@ -97,7 +91,7 @@ async def receive_data(
 @app.get("/round")
 async def get_current_round(
     session: AsyncSession = Depends(get_async_session)
-):
+) -> RoundResponse:
     global round, round_id
     success = True
     message = None
@@ -118,5 +112,36 @@ async def get_current_round(
     }
 
 
+@app.delete("/delete/shot")
+async def delete_last_shot(
+    session: AsyncSession = Depends(get_async_session)
+) -> RoundResponse:
+    global round, round_id
+    if not round: return {"success":False,"message":"No shot to delete!"}
 
+    round.holes[len(round.holes)-1].delete_last_shot()
+    await patch_to_db(round=round, session=session)
 
+    return {
+        "success": True,
+        "message": round.to_string()
+    }
+
+@app.delete("/delete/round")
+async def delete_round(
+    session: AsyncSession = Depends(get_async_session)
+) -> RoundResponse:
+    global round, round_id
+    if not round: return {"success":False,"message":"No round to delete!"}
+
+    result = await session.execute(select(RoundRow).where(RoundRow.id == round_id))
+    db_round = result.scalars().first()
+    await session.delete(db_round)
+    session.commit()
+
+    round = None
+    round_id = None
+    return {
+        "success": True,
+        "message": "Round deleted successfully!"
+    }

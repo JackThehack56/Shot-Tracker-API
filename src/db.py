@@ -10,6 +10,7 @@ from sqlalchemy.orm import DeclarativeBase
 import datetime
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+#DATABASE_URL = "sqlite+aiosqlite:///./data.db"
 
 class Base(DeclarativeBase):
     pass
@@ -32,5 +33,3 @@ async def create_db_and_tables():
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session 
-# Is it yield so it can return the newest current session instead 
-# of returning a session and then that session becoming out of date?

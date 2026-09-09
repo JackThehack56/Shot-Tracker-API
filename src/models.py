@@ -79,8 +79,8 @@ class Hole:
 
 
     def to_dict(self) -> dict[str, int | list[Shot]]: 
-        shots = [x.to_dict() for x in self.shots]
-
+        shots = [x.to_dict() for x in self.shots] if self.shots else []
+        
         Hole = {
             "hole": self.hole,
             "shots": shots
@@ -93,6 +93,9 @@ class Hole:
         shots = [Shot.from_dict(x) for x in data["shots"]]
         return Hole(data["hole"], *shots)
 
+    def delete_last_shot(self):
+        self.shots = self.shots[:-1]
+
     def save(self):
         data = self.to_dict()
 
@@ -100,12 +103,12 @@ class Hole:
             json.dump(data, file, indent=4)
 
 class Round:
-    round_id: int
+    course: str
     holes: list[Hole]
     is_finished: bool
 
-    def __init__(self, round_id: int, *holes: Hole):
-        self.round_id = round_id
+    def __init__(self, course: str, *holes: Hole):
+        self.course = course
         self.holes = [*holes]
         self.is_finished = len(self.holes)>=18
 
@@ -118,7 +121,7 @@ class Round:
         holes = [x.to_dict() for x in self.holes]
 
         Round = {
-            "round_id": self.round_id,
+            "course": self.course ,
             "holes": holes
         }
 
@@ -127,19 +130,13 @@ class Round:
     @staticmethod
     def from_dict(data: RoundDict) -> "Round":
         holes = [Hole.from_dict(x) for x in data["holes"]]
-        return Round(data["round_id"], *holes)
+        return Round(data["course"], *holes)
 
     def to_string(self) -> str:
-        string = f"Round-{self.round_id}:\n    "
+        string = f"{self.course}:\n    "
         for hole in self.holes:
             string += f"Hole-{hole.hole}:\n        "
             for idx, shot in enumerate(hole.shots):
                 string += f"Shot{shot.stroke},\n        " if idx<(len(hole.shots)-1) else f"Shot{shot.stroke} \n    "
 
         return string
-
-    def save(self):
-        data = self.to_dict()
-
-        with open(f"Round-{self.round_id}.json", "w") as file:
-            json.dump(data, file, indent=4)
