@@ -9,8 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 from sqlalchemy.orm import DeclarativeBase
 import datetime
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-#DATABASE_URL = "sqlite+aiosqlite:///./data.db"
+#DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = "sqlite+aiosqlite:///./data.db"
 
 class Base(DeclarativeBase):
     pass

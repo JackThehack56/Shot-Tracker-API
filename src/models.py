@@ -69,14 +69,20 @@ class Shot:
 class Hole:
     hole: int
     shots: list[Shot]
+    is_finished: bool = False
 
     def __init__(self, hole: int, *shots: Shot):
         self.hole = hole
         self.shots = [*shots]
 
     def add_shot(self, shot: Shot):
-        self.shots.append(shot)
+        if not self.is_finished:
+            self.shots.append(shot)
+        self._is_finished()
 
+    def _is_finished(self) -> bool:
+        self.is_finished = self.shots and self.shots[-1].finish.distance == 0 
+        return self.is_finished
 
     def to_dict(self) -> dict[str, int | list[Shot]]: 
         shots = [x.to_dict() for x in self.shots] if self.shots else []
@@ -96,6 +102,9 @@ class Hole:
     def delete_last_shot(self):
         self.shots = self.shots[:-1]
 
+    def get_last_shot(self) -> Shot:
+        return self.shots[-1] if self.shots else None
+
     def save(self):
         data = self.to_dict()
 
@@ -105,17 +114,27 @@ class Hole:
 class Round:
     course: str
     holes: list[Hole]
-    is_finished: bool
+    is_finished: bool = False
 
     def __init__(self, course: str, *holes: Hole):
         self.course = course
         self.holes = [*holes]
-        self.is_finished = len(self.holes)>=18
+        self._is_finished()
 
     def add_hole(self, hole: Hole):
         if not self.is_finished:
             self.holes.append(hole)
-        self.is_finished = len(self.holes)>=18
+        self._is_finished()
+
+    def _is_finished(self):
+        for hole in self.holes:
+            # Check if all the holes are finished up to the current one 
+            self.is_finished = hole._is_finished() and (self.is_finished or hole.hole==1)
+        self.is_finished = len(self.holes)>=18 and self.is_finished
+        return self.is_finished
+
+    def get_last_shot(self) -> Shot:
+        return self.holes[-1].get_last_shot()
 
     def to_dict(self) -> dict[str, int | list[Hole]]: 
         holes = [x.to_dict() for x in self.holes]
@@ -140,3 +159,22 @@ class Round:
                 string += f"Shot{shot.stroke},\n        " if idx<(len(hole.shots)-1) else f"Shot{shot.stroke} \n    "
 
         return string
+
+#holes: list[Hole] = []
+#for h in range(1, 19):
+#    hole = Hole(h)
+#    for shot in range(1, 5):
+#        if h != 1 and shot == 4:
+#            hole.add_shot(Shot(hole, shot, "club", "category", BallPosition(lie="lie", distance=10), 
+#                               BallPosition(lie="lie", distance=0), 0.0194))
+#            continue
+#        hole.add_shot(Shot(hole, shot, "club", "category", BallPosition(lie="lie", distance=10), 
+#                           BallPosition(lie="lie", distance=7), 0.0194))
+#    holes.append(hole)
+#
+#for hole in holes:
+#    print(hole.is_finished)
+#
+#round = Round("Dufferin Glen Golf Club", *holes)
+#
+#print(round.is_finished)
